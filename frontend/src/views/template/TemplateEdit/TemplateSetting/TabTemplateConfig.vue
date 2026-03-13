@@ -147,7 +147,18 @@
             :is-allow-set-multiple-trigger="isAllowSetMultipleTrigger"
             @change="onTriggerConfigChange" />
         </section>
-
+        <section class="form-section http-callback-section">
+          <h4>
+            <span>{{ $t('HTTP回调') }}</span>
+            <span class="tip-desc">{{ $t('支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口') }}</span>
+          </h4>
+          <HttpCallbackConfig
+            ref="httpCallbackForm"
+            :webhook-data="formData.webhookConfigs"
+            :enable-webhook="enableWebhook"
+            :is-view-mode="isViewMode"
+            @change="onHttpCallbackChange" />
+        </section>
         <section class="form-section">
           <h4>{{ $t('其他') }}</h4>
           <!-- <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
@@ -265,6 +276,7 @@
   import NotifyTypeConfig from './NotifyTypeConfig.vue';
   import permission from '@/mixins/permission.js';
   import TimedTriggerConfig from './TimedTriggerConfig.vue';
+  import HttpCallbackConfig from './HttpCallbackConfig.vue';
 
   export default {
     name: 'TabTemplateConfig',
@@ -272,6 +284,7 @@
       // MemberSelect,
       NotifyTypeConfig,
       TimedTriggerConfig,
+      HttpCallbackConfig,
     },
     mixins: [permission],
     props: {
@@ -291,7 +304,8 @@
     data() {
       const {
         name, category, notify_type: notifyType, notify_receivers: notifyReceivers = {}, description,
-        executor_proxy: execProxy, template_labels, default_flow_type, triggers,
+        executor_proxy: execProxy, template_labels, default_flow_type, triggers, webhook_configs: webhookConfigs,
+        enable_webhook: enableWebhook,
       } = this.$store.state.template;
 
       return {
@@ -306,7 +320,9 @@
           labels: template_labels,
           defaultFlowType: default_flow_type,
           triggers,
+          webhookConfigs: tools.deepClone(webhookConfigs),
         },
+        enableWebhook,
         stringLength: STRING_LENGTH,
         rules: {
           name: [
@@ -443,6 +459,7 @@
         window.open(href, '_blank');
       },
       getTemplateConfig() {
+        console.log('最终保存this.formData', this.formData);
         const {
           name,
           category,
@@ -454,7 +471,14 @@
           labels,
           defaultFlowType,
           triggers,
+          webhookConfigs,
         } = this.formData;
+        if (webhookConfigs?.extra_info) {
+          webhookConfigs.extra_info.interval = typeof webhookConfigs.extra_info.interval !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.interval;
+          webhookConfigs.extra_info.retry_times = typeof webhookConfigs.extra_info.retry_times !== 'number' ? parseInt(webhookConfigs.extra_info.retry_times) : webhookConfigs.extra_info.retry_times;
+          webhookConfigs.extra_info.timeout = typeof webhookConfigs.extra_info.timeout !== 'number' ? parseInt(webhookConfigs.extra_info.timeout) : webhookConfigs.extra_info.timeout;
+          webhookConfigs.extra_info.headers = webhookConfigs.extra_info.headers.filter(item => item.key !== '');
+        }
         return {
           name,
           category,
@@ -466,6 +490,8 @@
           notify_type: { success: notifyType[0], fail: notifyType[1] },
           default_flow_type: defaultFlowType,
           triggers,
+          webhook_configs: webhookConfigs,
+          enable_webhook: this.enableWebhook,
         };
       },
       jumpProjectManagement() {
@@ -495,12 +521,27 @@
       onTriggerConfigChange(triggers) {
         this.formData.triggers = triggers;
       },
+      onHttpCallbackChange(val, isEnableWebhook = false) {
+          if (isEnableWebhook) {
+              this.enableWebhook = val;
+          } else {
+              this.formData.webhookConfigs = val;
+          }
+      },
       onSaveConfig() {
-        this.$refs.configForm.validate().then((result) => {
+        this.$refs.configForm.validate().then(async (result) => {
           if (!result) {
             return;
           }
+          const validation = this.$refs.httpCallbackForm
+            ? await this.$refs.httpCallbackForm.validate()
+            : true;
+          console.log('http-回调校验validation', validation);
+          if (!validation) {
+            return;
+          }
           const data = this.getTemplateConfig();
+          console.log('保存配置data', data);
           this.setTplConfig(data);
           this.closeTab();
           this.$emit('templateDataChanged');
@@ -679,3 +720,5 @@
     }
 }
 </style>
+
+

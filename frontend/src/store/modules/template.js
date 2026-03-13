@@ -197,8 +197,13 @@ const template = {
     scopeInfo: {},
     canvas_mode: '',
     triggers: [],
+    webhook_configs: {},
+    enable_webhook: false,
   },
   mutations: {
+    setWebhookConfigs(state, webhookConfigs) {
+      state.webhook_configs = webhookConfigs;
+    },
     setTemplateName(state, name) {
       state.name = name;
     },
@@ -225,6 +230,8 @@ const template = {
       state.template_labels = data.template_labels;
       state.default_flow_type = data.default_flow_type;
       state.triggers = data.triggers;
+      state.webhook_configs = data.webhook_configs;
+      state.enable_webhook = data.enable_webhook;
     },
     setSubprocessUpdated(state, subflow) {
       if (state.subprocess_info) {
@@ -338,6 +345,8 @@ const template = {
         scope_type, // 作用域类型
         scope_value, // 作用域值
         triggers,
+        webhook_configs: webhookConfigs,
+        enable_webhook: enableWebhook,
       } = data;
 
       const {
@@ -362,6 +371,8 @@ const template = {
         scope_value,
       };
       state.triggers = triggers;
+      state.webhook_configs = webhookConfigs;
+      state.enable_webhook = enableWebhook;
 
       state.canvas_mode = pipelineData.canvas_mode;
       this.commit('template/setPipelineTree', pipelineData);
@@ -975,7 +986,7 @@ const template = {
         location, outputs, start_event, notify_receivers, notify_type,
         time_out: timeout, category, description, executor_proxy, template_labels, default_flow_type,
         canvas_mode,
-        stage_canvas_data, triggers,
+        stage_canvas_data, triggers, webhook_configs, enable_webhook,
       } = state;
       triggers.forEach((trigger) => {
         if (trigger) {
@@ -1061,6 +1072,8 @@ const template = {
           notify_receivers,
         },
         triggers,
+        webhook_configs,
+        enable_webhook,
       }, {
         headers,
       }).then(response => response.data);

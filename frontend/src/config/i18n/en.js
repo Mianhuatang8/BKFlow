@@ -1057,6 +1057,8 @@ const en = {
   参数名不能为空: 'Parameter name cannot be empty',
   参数名不能重复: 'Parameter name cannot be duplicated',
   '请输入值或 $ 选择变量': 'Enter value or $ to select variable',
+  HTTP回调: 'HTTP Callback',
+  '支持在流程结束（成功或失败）后，把任务输出的内容和执行结果作为参数调用回调接口': 'Support calling callback interface with task output content and execution result as parameters after process end (success or failure)'
 };
 
 export default en;
