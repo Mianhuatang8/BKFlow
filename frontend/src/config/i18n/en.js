@@ -1200,6 +1200,9 @@ const en = {
   密码: 'Password',
   循环失败处理: 'Loop Failure Handling',
   执行方式: 'Execution Method',
+  正在执行: 'Executing',
+  执行失败: 'Execution failed',
+  执行成功: 'Execution successful',
 };
 
 export default en;
