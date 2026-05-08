@@ -507,7 +507,7 @@
         if (this.isIframe) {
             return this.$route.query.useCanvasEditor === 'true';
         }
-        return false;
+        return this.canvasMode === 'horizontal';
       },
       canvasData() {
         const { line, location, activities } = { ... tools.deepClone(this.instanceFlow) };
